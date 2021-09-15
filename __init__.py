@@ -61,7 +61,7 @@ class BigscreenPlatform(MycroftSkill):
         try:
             self.bus.on('gui.page.show', self.on_gui_page_show)
             self.bus.on('gui.page_interaction', self.on_gui_page_interaction)
-        
+
         except:
             LOG.info('could not register on bus')
 
@@ -150,20 +150,29 @@ class BigscreenPlatform(MycroftSkill):
 
     def close_current_window(self, message):
         if not self.interaction_without_idle:
-            self.bus.emit(Message('screen.close.idle.event', 
+            self.bus.emit(Message('screen.close.idle.event',
                                   data={"skill_idle_event_id": message.data.get('skill_id')}))
+        self.handle_remove_namespace(message.data.get('skill_id'))
 
     def close_window_by_event(self, message):
         self.interaction_without_idle = False
         #self.log.info("Got Screen Exit CMD")
-        self.bus.emit(Message('screen.close.idle.event', 
+        self.bus.emit(Message('screen.close.idle.event',
                               data={"skill_idle_event_id": self.interaction_skill_id}))
+        self.handle_remove_namespace(self.interaction_skill_id)
 
     def close_window_by_force(self, message):
         skill_id_from_message = message.data["skill_id"]
         #self.log.info(skill_id_from_message, "sent a force close request")
-        self.bus.emit(Message('screen.close.idle.event', 
+        self.bus.emit(Message('screen.close.idle.event',
                               data={"skill_idle_event_id": skill_id_from_message}))
+        self.handle_remove_namespace(skill_id_from_message)
+
+    def handle_remove_namespace(self, skill_id):
+        get_skill_namespace = skill_id
+        if get_skill_namespace:
+            self.bus.emit(Message("gui.clear.namespace",
+                                  {"__from": get_skill_namespace}))
 
 
 def create_skill():
